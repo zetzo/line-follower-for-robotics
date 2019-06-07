@@ -1,0 +1,72 @@
+task main() {
+     int color;
+     int turn;
+     int threshold;
+     int power = 20;
+//     int min = 40;
+//     int max = -1;
+     unsigned long end_time;
+     
+     SetSensorColorRed(IN_3);
+     Wait(200);
+     
+     // calibration: turn left
+
+     end_time = CurrentTick() + 500;
+     OnRev(OUT_C, 10);
+     OnFwd(OUT_A, 10);
+     while (CurrentTick() < end_time) {
+         color = Sensor(IN_3);
+ /*        if (color > max) {
+             max = color;
+         } else if (color < min) {
+             min = color;
+         }  */
+     }
+
+     // calibration: turn right
+
+     end_time = CurrentTick() + 500;
+     OnFwd(OUT_A, 10);
+     OnRev(OUT_C, 10);
+     while (CurrentTick() < end_time) {
+         color = Sensor(IN_3);
+/*         if (color > max) {
+             max = color;
+         } else if (color < min) {
+             min = color;
+         }  */
+     }
+
+     threshold = (45)/2;
+
+     ClearLine(LCD_LINE3);
+     NumOut(20, LCD_LINE3, threshold);
+
+     // calibration done, find the edge of the line
+
+     OnRev(OUT_A, 10);
+     OnFwd(OUT_C, 10);
+     while (Sensor(IN_3) > threshold) {
+     }
+     Off(OUT_AC);
+
+     // and follow it
+     
+     while (true) {
+         color = Sensor(IN_3);
+
+         turn = power+200*(threshold-color)/(40);
+         if (turn > 100)
+            turn = 100;
+         if (turn < 0)
+            turn = 0;
+         OnRev(OUT_AC, 25);
+         turn = power-200*(threshold-color)/(40);   //max-min
+         if (turn > 100)
+            turn = 100;
+         if (turn < 0)
+            turn = 0;
+         OnRev(OUT_C, turn);
+     }
+}
